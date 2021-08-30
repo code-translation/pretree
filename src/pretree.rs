@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-#[derive(Debug)]
 struct Pretree {
     pub tree_group: HashMap<String, Tree>,
 }
@@ -17,11 +16,26 @@ impl Pretree {
             let tree = Tree::new(method);
             p.tree_group.insert(method.to_string(), tree);
         }
-        p
+        return p;
+    }
+
+    pub fn store(&self, method: &str, url_rule: &str) {
+        let t = self.tree_group.get(method).unwrap();
+        t.insert(url_rule)
+    }
+
+    pub fn query(&self, method: &str, url_path: &str) -> (bool, String, HashMap<String, String>) {
+        let t = self.tree_group.get(method).unwrap();
+        let (is_exist, node, vars) = t.search(url_path);
+        if is_exist {
+            (true, node.rule(), vars)
+        } else {
+            (false, "".to_string(), vars)
+        }
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Tree {
     rule: String,
     name: String,
@@ -29,8 +43,9 @@ struct Tree {
     is_end: bool,
     is_variable: bool,
 }
+
 impl Tree {
-    fn new(name: &str) -> Tree {
+    pub fn new(name: &str) -> Tree {
         Tree {
             rule: String::from(""),
             name: name.to_string(),
@@ -49,11 +64,11 @@ impl Tree {
     }
 
     pub fn rule(&self) -> String {
-        self.rule.to_string()
+        self.rule.clone()
     }
 
     pub fn name(&self) -> String {
-        self.name.to_string()
+        self.name.clone()
     }
 
     pub fn var_name(&self) -> String {
@@ -62,14 +77,14 @@ impl Tree {
     }
 
     fn insert(&self, url_rule: &str) {
-        let mut cur = self.clone();
+        let mut current = self.clone();
         let list = parse_path(url_rule);
         for word in &list {
             let mut is_exist = false;
-            for n in cur.child() {
+            for n in current.child() {
                 if n.name == word.to_string() {
                     is_exist = true;
-                    cur = n.clone();
+                    current = n.clone();
                     break;
                 }
             }
@@ -81,12 +96,50 @@ impl Tree {
             if is_variable(word) {
                 node.is_variable = true
             };
-            cur.append_child(&node);
-            cur = node.clone()
+            current.append_child(&node);
+            current = node.clone()
         }
 
-        cur.rule = url_rule.to_string();
-        cur.is_end = true;
+        current.rule = url_rule.to_string();
+        current.is_end = true;
+    }
+
+    fn search(&self, url_path: &str) -> (bool, Tree, HashMap<String, String>) {
+        let mut vars: HashMap<String, String> = HashMap::new();
+        let mut current = self.clone();
+        let list = parse_path(url_path);
+        for (index, word) in list.iter().enumerate() {
+            let mut is_exist = false;
+            let mut has_var = false;
+            for n in current.child() {
+                if n.name == word.clone() {
+                    has_var = false;
+                    is_exist = true;
+                    current = n;
+                    break;
+                }
+            }
+            if is_exist {
+                continue;
+            }
+
+            for m in current.child() {
+                if m.is_variable && index > 0 && !has_var {
+                    has_var = true;
+                    current = m.clone();
+                    vars.insert(m.var_name(), word.clone());
+                    break;
+                }
+            }
+            if has_var {
+                continue;
+            }
+        }
+        if current.is_end {
+            (true, current, vars)
+        } else {
+            (false, current.clone(), vars)
+        }
     }
 }
 
@@ -94,14 +147,15 @@ fn parse_path(path: &str) -> Vec<String> {
     let path = format_rule(path);
     let split = path.split("/");
     let paths: Vec<String> = split.map(|s| s.to_owned()).collect();
-    return paths;
+    paths
 }
+
 fn format_rule(rule: &str) -> String {
     let r = rule.replace("{", ":");
     let r = r.replace("}", "");
-    return r;
+    r
 }
 
 fn is_variable(s: &str) -> bool {
-    return s.starts_with(":");
+    s.starts_with(":")
 }
