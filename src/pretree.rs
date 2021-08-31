@@ -1,12 +1,12 @@
 #![allow(unused)]
 use std::collections::HashMap;
 
-struct Pretree {
-    pub tree_group: HashMap<String, Tree>,
+pub struct Pretree {
+    tree_group: HashMap<String, Tree>,
 }
 
 impl Pretree {
-    fn new() -> Pretree {
+    pub fn new() -> Pretree {
         let mut p = Pretree {
             tree_group: HashMap::new(),
         };
@@ -20,9 +20,9 @@ impl Pretree {
         return p;
     }
 
-    pub fn store(&self, method: &str, url_rule: &str) {
-        let t = self.tree_group.get(method).unwrap();
-        t.insert(url_rule)
+    pub fn store(&mut self, method: &str, url_rule: &str) {
+        let t = self.tree_group.get_mut(method).unwrap();
+        t.inser(method, url_rule);
     }
 
     pub fn query(&self, method: &str, url_path: &str) -> (bool, String, HashMap<String, String>) {
@@ -77,8 +77,8 @@ impl Tree {
         name.trim_start_matches(':').to_string()
     }
 
-    fn insert(&self, url_rule: &str) {
-        let mut current = self.clone();
+    fn insert(mut self, url_rule: &str) {
+        let mut current = self.clone(); // 作为游标指针使用，好像没有达到游标的效果
         let list = parse_path(url_rule);
         for word in &list {
             let mut is_exist = false;
