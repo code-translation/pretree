@@ -89,7 +89,7 @@ impl Tree {
     fn insert(&mut self, url_rule: &str) {
         let mut current = Some(self); // 作为游标指针使用，好像没有达到游标的效果
         let list = parse_path(url_rule);
-        'for_list: for word in &list {
+        for word in &list {
             let now = current.take().unwrap();
             let mut index = None;
             for (idx, tree) in now.nodes.iter().enumerate() {
@@ -118,34 +118,24 @@ impl Tree {
         let mut vars: HashMap<String, String> = HashMap::new();
         let mut current = Some(self);
         let list = parse_path(url_path);
-        'for_list: for (i, word) in list.into_iter().enumerate() {
-            let mut has_var = false;
+        'for_list: for (index, word) in list.into_iter().enumerate() {
             let now = current.take().unwrap();
-            let mut index = None;
-            for (idx, n) in now.nodes.iter().enumerate() {
+
+            for n in now.nodes.iter() {
                 if n.name() == word {
-                    has_var = false;
-                    index = Some(idx);
-                    break;
+                    current.replace(n);
+                    continue 'for_list;
                 }
             }
-            if let Some(i) = index {
-                current = now.nodes.get(i);
-            } else {
-                for (idx, m) in now.nodes.iter().enumerate() {
-                    if m.is_variable && i > 0 && !has_var {
-                        index = Some(idx);
-                        has_var = true;
-                        vars.insert(m.var_name(), word);
-                        break;
-                    }
-                }
-                if let Some(i) = index {
-                    current = now.nodes.get(i);
-                } else {
-                    current = Some(now);
+
+            for m in now.nodes.iter() {
+                if m.is_variable && index > 0 {
+                    vars.insert(m.var_name(), word);
+                    current.replace(m);
+                    continue 'for_list;
                 }
             }
+            current.replace(now);
         }
         let res = current.unwrap();
 
