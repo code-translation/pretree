@@ -22,14 +22,14 @@ impl Pretree {
 
     pub fn store(&mut self, method: &str, url_rule: &str) {
         let t = self.tree_group.get_mut(method).unwrap();
-        t.clone().insert(url_rule);
+        t.insert(url_rule);
     }
 
     pub fn query(&self, method: &str, url_path: &str) -> (bool, String, HashMap<String, String>) {
         let t = self.tree_group.get(method).unwrap();
         let (is_exist, node, vars) = t.search(url_path);
         if is_exist {
-            (true, node.rule(), vars)
+            (true, node.rule().into(), vars)
         } else {
             (false, "".to_string(), vars)
         }
@@ -56,91 +56,102 @@ impl Tree {
         }
     }
 
-    fn append_child(&mut self, node: &Tree) {
-        self.nodes.push(node.clone());
+    pub fn with_variable(name: &str, is_variable: bool) -> Tree {
+        Tree {
+            rule: String::from(""),
+            name: name.to_string(),
+            nodes: vec![],
+            is_end: false,
+            is_variable,
+        }
     }
 
-    pub fn child(&self) -> Vec<Tree> {
-        self.nodes.clone()
+    fn append_child(&mut self, node: Tree) {
+        self.nodes.push(node);
     }
 
-    pub fn rule(&self) -> String {
-        self.rule.clone()
+    pub fn child(&self) -> &Vec<Tree> {
+        &self.nodes
     }
 
-    pub fn name(&self) -> String {
-        self.name.clone()
+    pub fn rule(&self) -> &str {
+        &self.rule
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     pub fn var_name(&self) -> String {
-        let name = self.name.clone();
-        name.trim_start_matches(':').to_string()
+        self.name.trim_start_matches(':').to_string()
     }
 
-    fn insert(mut self, url_rule: &str) {
-        let mut current = self.clone(); // 作为游标指针使用，好像没有达到游标的效果
+    fn insert(&mut self, url_rule: &str) {
+        let mut current = Some(self); // 作为游标指针使用，好像没有达到游标的效果
         let list = parse_path(url_rule);
-        for word in &list {
-            let mut is_exist = false;
-            for n in current.child() {
-                if n.name == word.to_string() {
-                    is_exist = true;
-                    current = n.clone();
+        'for_list: for word in &list {
+            let now = current.take().unwrap();
+            let mut index = None;
+            for (idx, tree) in now.nodes.iter().enumerate() {
+                if tree.name() == word {
+                    index = Some(idx);
                     break;
                 }
             }
+            if let Some(i) = index {
+                current = now.nodes.get_mut(i);
+            } else {
+                let node = Tree::with_variable(word, is_variable(word));
+                now.append_child(node);
 
-            if is_exist {
-                continue;
+                current = now.nodes.last_mut();
             }
-            let mut node = Tree::new(word);
-            if is_variable(word) {
-                node.is_variable = true
-            };
-            current.append_child(&node);
-            current = node.clone()
         }
-
-        current.rule = url_rule.to_string();
-        current.is_end = true;
+        assert!(current.is_some());
+        if let Some(current) = current.take() {
+            current.rule = url_rule.into();
+            current.is_end = true;
+        }
     }
 
-    fn search(&self, url_path: &str) -> (bool, Tree, HashMap<String, String>) {
+    fn search(&self, url_path: &str) -> (bool, &Tree, HashMap<String, String>) {
         let mut vars: HashMap<String, String> = HashMap::new();
-        let mut current = self.clone();
+        let mut current = Some(self);
         let list = parse_path(url_path);
-        for (index, word) in list.iter().enumerate() {
-            let mut is_exist = false;
+        'for_list: for (i, word) in list.into_iter().enumerate() {
             let mut has_var = false;
-            for n in current.child() {
-                if n.name == word.clone() {
+            let now = current.take().unwrap();
+            let mut index = None;
+            for (idx, n) in now.nodes.iter().enumerate() {
+                if n.name() == word {
                     has_var = false;
-                    is_exist = true;
-                    current = n;
+                    index = Some(idx);
                     break;
                 }
             }
-            if is_exist {
-                continue;
+            if let Some(i) = index {
+                current = now.nodes.get(i);
+            } else {
+                for (idx, m) in now.nodes.iter().enumerate() {
+                    if m.is_variable && i > 0 && !has_var {
+                        index = Some(idx);
+                        has_var = true;
+                        vars.insert(m.var_name(), word);
+                        break;
+                    }
+                }
+                if let Some(i) = index {
+                    current = now.nodes.get(i);
+                } else {
+                    current = Some(now);
+                }
             }
+        }
+        let res = current.unwrap();
 
-            for m in current.child() {
-                if m.is_variable && index > 0 && !has_var {
-                    has_var = true;
-                    current = m.clone();
-                    vars.insert(m.var_name(), word.clone());
-                    break;
-                }
-            }
-            if has_var {
-                continue;
-            }
-        }
-        if current.is_end {
-            (true, current, vars)
-        } else {
-            (false, current.clone(), vars)
-        }
+        let is_end = res.is_end;
+
+        (is_end, res, vars)
     }
 }
 
