@@ -22,7 +22,7 @@ impl Pretree {
 
     pub fn store(&mut self, method: &str, url_rule: &str) {
         let t = self.tree_group.get_mut(method).unwrap();
-        t.inser(method, url_rule);
+        t.clone().insert(url_rule);
     }
 
     pub fn query(&self, method: &str, url_path: &str) -> (bool, String, HashMap<String, String>) {
