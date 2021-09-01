@@ -1,15 +1,14 @@
 #![allow(unused)]
 use std::collections::HashMap;
 
+#[derive(Default)]
 pub struct Pretree {
     tree_group: HashMap<String, Tree>,
 }
 
 impl Pretree {
     pub fn new() -> Pretree {
-        let mut p = Pretree {
-            tree_group: HashMap::new(),
-        };
+        let mut p = Pretree::default();
         let methods = [
             "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "CONNECT", "OPTIONS", "TRACE",
         ];
@@ -17,7 +16,7 @@ impl Pretree {
             let tree = Tree::new(method);
             p.tree_group.insert(method.to_string(), tree);
         }
-        return p;
+        p
     }
 
     pub fn store(&mut self, method: &str, url_rule: &str) {
@@ -68,10 +67,6 @@ impl Tree {
 
     fn append_child(&mut self, node: Tree) {
         self.nodes.push(node);
-    }
-
-    pub fn child(&self) -> &Vec<Tree> {
-        &self.nodes
     }
 
     pub fn rule(&self) -> &str {
@@ -147,17 +142,17 @@ impl Tree {
 
 fn parse_path(path: &str) -> Vec<String> {
     let path = format_rule(path);
-    let split = path.split("/");
+    let split = path.split('/');
     let paths: Vec<String> = split.map(|s| s.to_owned()).collect();
     paths
 }
 
 fn format_rule(rule: &str) -> String {
     let r = rule.replace("{", ":");
-    let r = r.replace("}", "");
+    r.replace("}", "");
     r
 }
 
 fn is_variable(s: &str) -> bool {
-    s.starts_with(":")
+    s.starts_with(':')
 }
