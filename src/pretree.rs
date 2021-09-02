@@ -115,14 +115,12 @@ impl Tree {
         let list = parse_path(url_path);
         'for_list: for (index, word) in list.into_iter().enumerate() {
             let now = current.take().unwrap();
-
             for n in now.nodes.iter() {
                 if n.name() == word {
                     current.replace(n);
                     continue 'for_list;
                 }
             }
-
             for m in now.nodes.iter() {
                 if m.is_variable && index > 0 {
                     vars.insert(m.var_name(), word);
@@ -154,5 +152,5 @@ fn format_rule(rule: &str) -> String {
 }
 
 fn is_variable(s: &str) -> bool {
-    s.starts_with(':')
+    s.starts_with(":")
 }
