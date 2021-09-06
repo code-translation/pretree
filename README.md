@@ -16,7 +16,7 @@ See this document at [API documentation](https://docs.rs/pretree)
 
 Add the following line to your Cargo.toml file:
     
-    pretree = "1.0.0"
+    pretree = "1.0.1"
 
 # Example
 
