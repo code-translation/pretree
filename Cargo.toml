@@ -7,7 +7,7 @@ authors = ["wandercn<wander@ffactory.org>"]
 description = "Pretree is a package for storing and querying routing rules with prefix tree. Pretree 是一个用于存储和查询路由规则的包。它用前缀树存储路由规则，支持包含变量的路由。"
 homepage = "https://github.com/code-translation/pretree"
 repository = "https://github.com/code-translation/pretree"
-keywords = ["prefix tree","tree","url match","url routing","algorithm"]
+keywords = ["prefix-tree","tree","url-match","url-routing","algorithm"]
 categories = ["accessibility","algorithms","data-structures"]
 [profile.dev]
 opt-level = 0
