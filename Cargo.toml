@@ -1,7 +1,7 @@
 [package]
 name = "pretree"
 license = "GPL-3.0"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2018"
 authors = ["wandercn<wander@ffactory.org>"]
 description = "Pretree is a package for storing and querying routing rules with prefix tree. Pretree 是一个用于存储和查询路由规则的包。它用前缀树存储路由规则，支持包含变量的路由。"
