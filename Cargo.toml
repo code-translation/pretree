@@ -1,9 +1,18 @@
 [package]
 name = "pretree"
-version = "0.1.0"
+license = "GPL-3.0"
+version = "1.0.0"
 edition = "2018"
 authors = ["wandercn<wander@ffactory.org>"]
+description = "Pretree is a package for storing and querying routing rules with prefix tree. Pretree 是一个用于存储和查询路由规则的包。它用前缀树存储路由规则，支持包含变量的路由。"
+homepage = "https://github.com/code-translation/pretree"
+repository = "https://github.com/code-translation/pretree"
+keywords = ["prefix tree","tree","url match","url routing","algorithm"]
+categories = ["accessibility","algorithms","data-structures"]
+[profile.dev]
+opt-level = 0
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[profile.release]
+opt-level = 3
 
 [dependencies]
