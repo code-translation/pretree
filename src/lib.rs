@@ -215,7 +215,7 @@ fn format_rule(rule: &str) -> String {
 }
 
 fn is_variable(s: &str) -> bool {
-    s.starts_with(":")
+    s.starts_with(':')
 }
 #[cfg(test)]
 mod tests {
