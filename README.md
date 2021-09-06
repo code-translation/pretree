@@ -16,7 +16,8 @@ See this document at [API documentation](https://docs.rs/pretree)
 
 Add the following line to your Cargo.toml file:
     
-    colorstyle = "1.0.1"
+    pretree = "1.0.0"
+
 # Example
 
 ```
