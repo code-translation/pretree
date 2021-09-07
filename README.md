@@ -1,4 +1,4 @@
-# Pretree
+# [Pretree](https://crates.io/crates/pretree)
 
 [![crates.io](https://img.shields.io/crates/v/pretree.svg?color=yellow)](https://crates.io/crates/pretree)
 [![Released API docs](https://docs.rs/pretree/badge.svg)](https://docs.rs/pretree)
